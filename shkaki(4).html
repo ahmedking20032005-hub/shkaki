@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>شكاكي — حاسبة أرباح الدروب شيبينغ</title>
+<meta name="theme-color" content="#0b0f19">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+:root{
+  --bg:#f6f7f9; --card:#ffffff;
+  --text:#0b0f19; --text2:#5a6078; --text3:#8b92a8;
+  --border:#e2e5ec; --muted:#eef0f4;
+  --accent:#2563eb; --accent2:#1d4ed8;
+  --pos:#16a34a; --neg:#dc2626; --warn:#d97706;
+  --c1:#2563eb; --c2:#ef4444; --c4:#8b5cf6; --c5:#94a3b8;
+  --shadow:0 1px 2px rgba(11,15,25,.06),0 4px 12px rgba(11,15,25,.04);
+  --radius:16px; --radius-sm:12px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0b0f19; --card:#121625;
+    --text:#f0f2f7; --text2:#9aa3b8; --text3:#5e667a;
+    --border:#232a42; --muted:#181e32;
+    --accent:#3b82f6; --accent2:#60a5fa;
+    --pos:#22c55e; --neg:#f87171; --warn:#fbbf24;
+    --c1:#3b82f6; --c2:#f87171; --c4:#a78bfa; --c5:#64748b;
+    --shadow:0 1px 2px rgba(0,0,0,.25),0 4px 12px rgba(0,0,0,.2);
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Arabic","Helvetica Neue",Arial,sans-serif;
+  background:var(--bg); color:var(--text); min-height:100vh; line-height:1.55;
+  -webkit-tap-highlight-color:transparent;
+}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.wrap{max-width:1020px;margin:0 auto;padding:16px}
+@media(min-width:640px){.wrap{padding:24px}}
+
+.header{position:sticky;top:0;z-index:10;background:rgba(246,247,249,.75);backdrop-filter:saturate(140%) blur(14px);-webkit-backdrop-filter:saturate(140%) blur(14px);border-bottom:1px solid var(--border)}
+@media (prefers-color-scheme: dark){.header{background:rgba(11,15,25,.75)}}
+.header-inner{max-width:1020px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
+@media(min-width:640px){.header-inner{padding:12px 24px}}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:38px;height:38px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.35)}
+.brand-name{font-size:18px;font-weight:700;line-height:1.2}
+.brand-tag{font-size:11px;color:var(--text3);line-height:1.2}
+
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500}
+.chip.soft{background:var(--muted);color:var(--text2)}
+.chip.pos{background:rgba(22,163,74,.10);color:var(--pos)}
+.chip.neg{background:rgba(220,38,38,.10);color:var(--neg)}
+.chip.warn{background:rgba(217,119,6,.12);color:var(--warn)}
+
+.ptabs{display:flex;gap:8px;overflow-x:auto;padding:4px 0 12px;scrollbar-width:thin}
+.ptab{white-space:nowrap;padding:8px 16px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text2);cursor:pointer;font-size:13px;font-weight:500;flex-shrink:0}
+.ptab.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:16px 18px 10px;border-bottom:1px solid var(--border)}
+.card-title{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
+.card-body{padding:14px 18px 18px}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:780px){.grid{grid-template-columns:1fr}}
+
+.lbl{font-size:12px;color:var(--text2);display:block;margin-bottom:5px;font-weight:500}
+.field{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:15px}
+.field:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fgrid .full{grid-column:1/-1}
+@media(max-width:460px){.fgrid{grid-template-columns:1fr}}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border-radius:var(--radius-sm);font-size:14px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--text)}
+.btn:active{transform:scale(.97)}
+.btn.ghost{border-style:dashed;color:var(--text2);background:transparent}
+.btn.danger{color:var(--neg);background:transparent}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.primary:active{background:var(--accent2)}
+.btn.sm{padding:6px 12px;font-size:13px}
+
+/* === ADS: desktop table === */
+.ads-wrap{overflow-x:auto}
+.ads-table{width:100%;border-collapse:collapse;font-size:14px}
+.ads-table th{text-align:right;padding:6px;color:var(--text3);font-size:11px;font-weight:500}
+.ads-table td{padding:5px 4px;vertical-align:middle}
+.ads-table td .field{padding:8px 9px;font-size:14px}
+.ads-table .cpa{text-align:center;font-size:13px;color:var(--text2);white-space:nowrap}
+.ads-table .del-btn{width:30px;height:30px;border-radius:8px;border:none;background:transparent;color:var(--text3);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.ads-table .del-btn:active{background:var(--muted)}
+@media(max-width:600px){
+  .ads-table,.ads-table tbody,.ads-table tr,.ads-table td{display:block;width:100%}
+  .ads-table thead{display:none}
+  .ads-table tr{border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px;margin-bottom:10px}
+  .ads-table td{padding:5px 0}
+  .ads-table td::before{content:attr(data-l);display:block;font-size:11px;color:var(--text3);margin-bottom:3px}
+  .ads-table .cpa{text-align:right;padding-top:8px}
+  .ads-table .cpa::before{display:none}
+  .ads-table .del-cell{text-align:left}
+  .ads-table .del-cell::before{display:none}
+}
+
+.hero{display:flex;align-items:baseline;gap:10px;margin:2px 0 6px}
+.hero .big{font-size:36px;font-weight:700;line-height:1.1}
+.hero .label{font-size:13px;color:var(--text2)}
+.subline{font-size:13px;color:var(--text2);margin-bottom:16px}
+
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.kv .r{display:flex;justify-content:space-between;gap:8px;padding-bottom:9px;border-bottom:1px solid var(--border);font-size:14px}
+.kv .r span{color:var(--text2)}
+.kv .r b{font-weight:600}
+.kv .r.last{border-bottom:none;padding-bottom:0}
+
+.bar{display:flex;height:22px;border-radius:8px;overflow:hidden}
+.legend{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:14px;font-size:13px;color:var(--text2)}
+.legend .it{display:inline-flex;align-items:center;gap:7px}
+.legend .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+.legend b{color:var(--text)}
+
+.insights{display:flex;flex-direction:column;gap:10px;font-size:14px}
+.insights .r{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.insights .r span{color:var(--text2)}
+.insights .tip{font-size:13px;color:var(--text2);border-top:1px solid var(--border);padding-top:10px;line-height:1.7}
+.empty{color:var(--text3);font-size:14px}
+.footer-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 20px;border-radius:12px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:opacity .25s;z-index:99;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<noscript>
+<div style="position:fixed;inset:0;z-index:9999;background:#0b0f19;color:#f0f2f7;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:Tahoma,Arial,sans-serif">
+  <div style="max-width:420px">
+    <div style="font-size:26px;font-weight:700;margin-bottom:8px">تطبيق شكاكي</div>
+    <div style="font-size:15px;line-height:1.9;color:#c9d1e0">
+      هذا المتصفح لا يشغّل JavaScript، لذلك لن يعمل التطبيق هنا.<br><br>
+      <b style="color:#fff">للحل:</b><br>
+      1. افتح ملف HTML باستخدام متصفح <b style="color:#fff">Chrome</b><br>
+      2. أو من مدير الملفات: اضغط مطولاً على الملف ← "فتح باستخدام" ← Chrome<br>
+      3. أو افتح Chrome ثم اكتب في شريط العنوان:<br>
+      <span style="direction:ltr;unicode-bidi:embed;background:#1a1f35;padding:6px 12px;border-radius:8px;display:inline-block;margin-top:6px;font-size:13px">file:///sdcard/Download/shkaki.html</span>
+    </div>
+  </div>
+</div>
+</noscript>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">شكاكي</div>
+        <div class="brand-tag">يفحص أرباحك بدقة</div>
+      </div>
+    </div>
+    <span class="chip soft" id="saveBadge">يُحفظ تلقائياً</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="ptabs" id="ptabs"></div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">تفاصيل المنتج</div>
+          <button class="btn danger sm" id="delProduct">حذف المنتج</button>
+        </div>
+        <div class="card-body">
+          <div class="fgrid">
+            <div class="full"><span class="lbl">اسم المنتج</span><input class="field" id="pName" placeholder="مثال: سماعات لاسلكية"></div>
+            <div><span class="lbl">سعر البيع الكلي (مع التوصيل)</span><input class="field num" id="sellPrice" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div>
+            <div><span class="lbl">تكلفة المنتج من المورّد</span><input class="field num" id="prodCost" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div>
+            <div><span class="lbl">تكلفة الشحن</span><input class="field num" id="shipCost" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div>
+            <div><span class="lbl">رسوم الدفع %</span><input class="field num" id="feePct" type="number" min="0" step="0.1" inputmode="decimal" placeholder="3"></div>
+            <div><span class="lbl">عدد الطلبات الراجعة</span><input class="field num" id="returned" type="number" min="0" step="1" inputmode="numeric" placeholder="0"></div>
+            <div><span class="lbl">العملة</span>
+              <select class="field num" id="cur">
+                <option value="د.ع">د.ع دينار عراقي</option>
+                <option value="$">$ دولار أمريكي</option>
+                <option value="€">€ يورو</option>
+                <option value="ر.س">ر.س ريال سعودي</option>
+                <option value="د.إ">د.إ درهم إماراتي</option>
+                <option value="ج.م">ج.م جنيه مصري</option>
+                <option value="د.ج">د.ج دينار جزائري</option>
+                <option value="د.م">د.م درهم مغربي</option>
+                <option value="ل.س">ل.س ليرة سورية</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">الإعلانات</div>
+          <span class="chip soft">إجمالي الطلبات: <b class="num" id="totalOrdersTop">0</b></span>
+        </div>
+        <div class="card-body">
+          <div class="ads-wrap">
+            <table class="ads-table">
+              <thead><tr><th>الإعلان</th><th>الميزانية</th><th>الطلبات</th><th style="text-align:center">CPA</th><th></th></tr></thead>
+              <tbody id="adsList"></tbody>
+            </table>
+          </div>
+          <button class="btn ghost" id="addAd" style="margin-top:10px;width:100%">+ إضافة إعلان جديد</button>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">النتائج — <span id="resName" style="color:var(--text2);font-weight:500"></span></div>
+          <span class="chip soft" id="verdictChip"></span>
+        </div>
+        <div class="card-body">
+          <div class="hero"><span class="big num" id="profitPerOrder">—</span><span class="label">صافي الربح لكل طلب مكتمل</span></div>
+          <div class="subline">إجمالي الربح: <b class="num" id="totalProfit">—</b></div>
+          <div class="kv">
+            <div class="r"><span>إجمالي الإيرادات</span><b class="num" id="rev">—</b></div>
+            <div class="r"><span>عدد الطلبات</span><b class="num" id="orders">—</b></div>
+            <div class="r"><span>الطلبات المكتملة</span><b class="num" id="fulfilled">—</b></div>
+            <div class="r"><span>الطلبات المرتجعة</span><b class="num" id="retCount" style="color:var(--neg)">—</b></div>
+            <div class="r"><span>إجمالي تكلفة الإعلانات</span><b class="num" id="adSpend">—</b></div>
+            <div class="r"><span>تكلفة الطلب الواحد (CPA)</span><b class="num" id="cpa">—</b></div>
+            <div class="r"><span>نقطة التعادل (أقصى CPA)</span><b class="num" id="breakEven">—</b></div>
+            <div class="r"><span>ROAS</span><b class="num" id="roas">—</b></div>
+            <div class="r"><span>خسارة المرتجعات</span><b class="num" id="retLoss" style="color:var(--neg)">—</b></div>
+            <div class="r"><span>إجمالي التكاليف</span><b class="num" id="totalCosts">—</b></div>
+            <div class="r last"><span>هامش الربح %</span><b class="num" id="margin">—</b></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><div class="card-title">أين يذهب كل بيع؟</div></div>
+        <div class="card-body">
+          <div class="bar" id="bar"></div>
+          <div class="legend" id="legend"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><div class="card-title">تقييم الترويج</div></div>
+        <div class="card-body">
+          <div class="insights" id="insights"></div>
+          <div class="footer-actions">
+            <button class="btn primary sm" id="copyReport">نسخ التقرير</button>
+            <button class="btn ghost sm" id="resetAll">إعادة تعيين</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:20px 0 8px;color:var(--text3);font-size:12px">شكاكي — يفحص أرباحك من الدروب شيبينغ بدقة</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var $ = function(id){ return document.getElementById(id); };
+var KEY = 'shkaki_app_v2';
+var SVG_DEL = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';
+
+function defaults(){
+  return [
+    { name:'منتج جديد', sell:'', prodCost:'', ship:'', feePct:'', returned:0, cur:'د.ع', ads:[
+      {name:'', spend:'', orders:''}]}
+  ];
+}
+
+var products = defaults(), active = 0, storeOK = true, lastCalc = null;
+try {
+  var s = localStorage.getItem(KEY);
+  if (s){
+    var parsed = JSON.parse(s);
+    if (Object.prototype.toString.call(parsed) === '[object Array]' && parsed.length && parsed[0].ads){
+      products = parsed;
+    }
+  }
+} catch(e){ storeOK = false; }
+if (!storeOK){ var sb = $('saveBadge'); if (sb) sb.textContent = 'الحفظ غير متاح'; }
+for (var mi = 0; mi < products.length; mi++){
+  var mp = products[mi];
+  if (mp.returned === undefined || mp.returned === null) mp.returned = 0;
+  if (!mp.ads) mp.ads = [];
+  for (var mj = 0; mj < mp.ads.length; mj++){
+    if (mp.ads[mj].name === undefined) mp.ads[mj].name = '';
+    if (mp.ads[mj].spend === undefined) mp.ads[mj].spend = '';
+    if (mp.ads[mj].orders === undefined) mp.ads[mj].orders = '';
+  }
+}
+
+function save(){
+  if (!storeOK) return;
+  try { localStorage.setItem(KEY, JSON.stringify(products)); } catch(e){ storeOK = false; }
+}
+function P(){ return products[active]; }
+
+function toast(msg){
+  var t = $('toast'); t.textContent = msg; t.className = 'toast show';
+  setTimeout(function(){ t.className = 'toast'; }, 2200);
+}
+
+function fmt(n, d){
+  if (typeof n !== 'number' || !isFinite(n)) return '—';
+  if (d === undefined || d === null) d = 2;
+  var s = n.toLocaleString('en-US', {minimumFractionDigits: d, maximumFractionDigits: d});
+  if (s.indexOf('.') > -1) s = s.replace(/\.?0+$/, '');
+  return s;
+}
+function money(n, d){
+  if (n === null || n === undefined || typeof n !== 'number' || !isFinite(n)) return '—';
+  return fmt(n, d) + ' ' + (P().cur || '');
+}
+
+/* === TABS === */
+function renderTabs(){
+  var t = $('ptabs'); if (!t) return; t.innerHTML = '';
+  for (var i = 0; i < products.length; i++){
+    (function(idx){
+      var b = document.createElement('button');
+      b.className = 'ptab' + (idx === active ? ' on' : '');
+      b.textContent = products[idx].name || ('منتج ' + (idx + 1));
+      b.onclick = function(){ active = idx; renderTabs(); syncInputs(); recalc(); };
+      t.appendChild(b);
+    })(i);
+  }
+  var add = document.createElement('button');
+  add.className = 'ptab';
+  add.textContent = '+ منتج جديد';
+  add.onclick = function(){
+    products.push({name:'منتج جديد', sell:'', prodCost:'', ship:'', feePct:'', returned:0, cur:'د.ع', ads:[{name:'', spend:'', orders:''}]});
+    active = products.length - 1;
+    save(); renderTabs(); syncInputs(); recalc();
+  };
+  t.appendChild(add);
+}
+
+/* === ADS: build rows with DOM API (no innerHTML on table rows) === */
+function el(tag, cls, val){
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (val !== undefined && val !== null) e.value = val;
+  return e;
+}
+
+function renderAds(){
+  var list = $('adsList'); if (!list) return;
+  while (list.firstChild) list.removeChild(list.firstChild);
+  var ads = P().ads;
+  for (var i = 0; i < ads.length; i++){
+    (function(a){
+      var tr = el('tr');
+
+      var tdName = el('td'); tdName.setAttribute('data-l', 'اسم الإعلان');
+      var inpName = el('input', 'field ad-name', a.name);
+      inpName.setAttribute('placeholder', 'اسم الإعلان');
+      tdName.appendChild(inpName);
+
+      var tdSpend = el('td'); tdSpend.setAttribute('data-l', 'الميزانية');
+      var inpSpend = el('input', 'field num ad-spend', a.spend);
+      inpSpend.type = 'number'; inpSpend.min = '0'; inpSpend.step = '0.01'; inpSpend.setAttribute('inputmode', 'decimal');
+      tdSpend.appendChild(inpSpend);
+
+      var tdOrders = el('td'); tdOrders.setAttribute('data-l', 'الطلبات');
+      var inpOrders = el('input', 'field num ad-orders', a.orders);
+      inpOrders.type = 'number'; inpOrders.min = '0'; inpOrders.step = '1'; inpOrders.setAttribute('inputmode', 'numeric');
+      tdOrders.appendChild(inpOrders);
+
+      var tdCpa = el('td', 'cpa num ad-cpa'); tdCpa.textContent = '—';
+
+      var tdDel = el('td', 'del-cell');
+      var btn = el('button', 'del-btn'); btn.title = 'حذف الإعلان'; btn.innerHTML = SVG_DEL;
+      btn.onclick = function(){
+        var idx = P().ads.indexOf(a);
+        if (idx > -1) P().ads.splice(idx, 1);
+        renderAds(); recalc(); save();
+      };
+      tdDel.appendChild(btn);
+
+      tr.appendChild(tdName); tr.appendChild(tdSpend); tr.appendChild(tdOrders);
+      tr.appendChild(tdCpa); tr.appendChild(tdDel);
+      list.appendChild(tr);
+    })(ads[i]);
+  }
+}
+
+/* Delegated input handling on the ads table — survives any re-render */
+function setupAdsDelegation(){
+  var list = $('adsList');
+  list.addEventListener('input', function(e){
+    var t = e.target;
+    var tr = t.parentNode;
+    while (tr && tr.tagName !== 'TR') tr = tr.parentNode;
+    if (!tr) return;
+    var idx = -1;
+    for (var i = 0; i < list.children.length; i++){ if (list.children[i] === tr){ idx = i; break; } }
+    var a = P().ads[idx];
+    if (!a) return;
+    if (t.className.indexOf('ad-name') > -1){ a.name = t.value; renderTabs(); save(); }
+    else if (t.className.indexOf('ad-spend') > -1){ a.spend = parseFloat(t.value); if (isNaN(a.spend)) a.spend = 0; recalc(); save(); }
+    else if (t.className.indexOf('ad-orders') > -1){ a.orders = parseInt(t.value, 10); if (isNaN(a.orders)) a.orders = 0; recalc(); save(); }
+  }, false);
+}
+
+function syncInputs(){
+  var p = P();
+  $('pName').value = p.name;
+  $('sellPrice').value = p.sell;
+  $('prodCost').value = p.prodCost;
+  $('shipCost').value = p.ship;
+  $('feePct').value = p.feePct;
+  $('returned').value = p.returned;
+  $('cur').value = p.cur;
+  $('resName').textContent = p.name;
+  renderAds();
+}
+
+function num(v){ var n = parseFloat(v); return isNaN(n) ? 0 : n; }
+
+function recalc(){
+  var p = P();
+  var sell = num(p.sell), pc = num(p.prodCost), ship = num(p.ship);
+  var fee = sell * num(p.feePct) / 100;
+  var fixed = pc + ship + fee;
+  var breakEven = sell - fixed;
+  var spend = 0, orders = 0, i;
+  for (i = 0; i < p.ads.length; i++){ spend += num(p.ads[i].spend); orders += parseInt(p.ads[i].orders, 10) || 0; }
+  var returned = parseInt(p.returned, 10);
+  if (isNaN(returned) || returned < 0) returned = 0;
+  if (returned > orders) returned = orders;
+  var fulfilled = orders - returned;
+
+  /* per-ad CPA coloring */
+  var list = $('adsList');
+  for (i = 0; i < p.ads.length; i++){
+    var row = list.children[i];
+    if (!row) continue;
+    var cpaEl = null, cells = row.children;
+    for (var j = 0; j < cells.length; j++){ if (cells[j].className.indexOf('ad-cpa') > -1){ cpaEl = cells[j]; break; } }
+    if (!cpaEl) continue;
+    var x = p.ads[i];
+    var c = x.orders > 0 ? num(x.spend) / x.orders : null;
+    if (c === null){ cpaEl.textContent = '—'; cpaEl.style.color = ''; }
+    else {
+      cpaEl.textContent = fmt(c);
+      cpaEl.style.color = c <= breakEven ? 'var(--pos)' : 'var(--neg)';
+    }
+  }
+
+  var cpa = orders > 0 ? spend / orders : null;
+  var ppo = cpa === null ? breakEven : breakEven - cpa;
+  var rev = sell * fulfilled;
+  var retLoss = returned * (pc + ship);
+  var totalCosts = fixed * fulfilled + retLoss + spend;
+  var profit = rev - totalCosts;
+  var margin = rev > 0 ? profit / rev * 100 : null;
+  var roas = spend > 0 ? rev / spend : null;
+
+  lastCalc = { spend: spend, orders: orders, returned: returned, fulfilled: fulfilled, cpa: cpa, ppo: ppo, rev: rev, retLoss: retLoss, totalCosts: totalCosts, profit: profit, margin: margin, roas: roas, breakEven: breakEven };
+
+  $('profitPerOrder').textContent = money(ppo);
+  $('profitPerOrder').style.color = ppo < 0 ? 'var(--neg)' : 'var(--pos)';
+  $('totalProfit').textContent = money(profit);
+  $('totalProfit').style.color = profit < 0 ? 'var(--neg)' : 'var(--pos)';
+  $('rev').textContent = money(rev, 0);
+  $('orders').textContent = String(orders);
+  $('totalOrdersTop').textContent = String(orders);
+  $('fulfilled').textContent = String(fulfilled);
+  $('retCount').textContent = String(returned);
+  $('adSpend').textContent = money(spend, 0);
+  $('cpa').textContent = cpa === null ? '—' : money(cpa);
+  $('breakEven').textContent = money(Math.max(breakEven, 0));
+  $('roas').textContent = roas === null ? '—' : fmt(roas);
+  $('retLoss').textContent = money(retLoss, 0);
+  $('totalCosts').textContent = money(totalCosts, 0);
+  $('margin').textContent = margin === null ? '—' : fmt(margin) + '%';
+
+  var v = $('verdictChip');
+  if (sell > 0 && breakEven <= 0){ v.textContent = 'سعر البيع أقل من التكاليف'; v.className = 'chip warn'; }
+  else if (orders === 0){ v.textContent = 'أدخل بيانات الإعلانات'; v.className = 'chip soft'; }
+  else if (profit > 0){ v.textContent = 'حملة رابحة'; v.className = 'chip pos'; }
+  else if (profit < 0){ v.textContent = 'حملة خاسرة'; v.className = 'chip neg'; }
+  else { v.textContent = 'تعادل'; v.className = 'chip warn'; }
+
+  var parts = [
+    { label:'تكلفة المنتج', v: pc * fulfilled, c:'var(--c1)' },
+    { label:'الشحن', v: ship * fulfilled, c:'var(--c4)' },
+    { label:'رسوم الدفع', v: fee * fulfilled, c:'var(--c5)' },
+    { label:'الإعلانات', v: spend, c:'var(--c2)' },
+    { label:'المرتجعات', v: retLoss, c:'var(--neg)' },
+    { label:'صافي الربح', v: profit, c:'var(--pos)' }
+  ];
+  var bar = $('bar'), legend = $('legend');
+  bar.innerHTML = ''; legend.innerHTML = '';
+  if (rev > 0){
+    for (i = 0; i < parts.length; i++){
+      (function(pt){
+        var w = pt.v / rev * 100;
+        if (w < 0) w = 0;
+        if (w > 0){ var d = document.createElement('div'); d.style.width = w + '%'; d.style.background = pt.c; bar.appendChild(d); }
+        var l = document.createElement('span');
+        l.className = 'it';
+        l.innerHTML = '<span class="dot" style="background:' + pt.c + '"></span>' + pt.label + ' <b class="num">' + money(pt.v, 0) + '</b>';
+        legend.appendChild(l);
+      })(parts[i]);
+    }
+  } else {
+    bar.innerHTML = '<div style="width:100%;height:100%;background:var(--muted)"></div>';
+    legend.innerHTML = '<span class="empty">لا بيانات كافية</span>';
+  }
+
+  var ins = $('insights'); ins.innerHTML = '';
+  function put(html){ var d = document.createElement('div'); d.innerHTML = html; ins.appendChild(d); }
+  var valid = [];
+  for (i = 0; i < p.ads.length; i++){ if (parseInt(p.ads[i].orders, 10) > 0) valid.push(p.ads[i]); }
+  if (sell > 0 && breakEven <= 0){
+    put('<div class="tip" style="border-top:none;padding-top:0;color:var(--warn);font-weight:600">سعر البيع (' + money(sell,0) + ') يساوي تكلفة المنتج والشحن — ربحك صفر قبل الإعلانات، وأي إنفاق إعلاني يتحول لخسارة. ارفع سعر البيع أو خفّض التكاليف.</div>');
+  }
+  if (valid.length === 0){
+    put('<span class="empty">أضف إعلانات مع عدد الطلبات ليظهر التقييم</span>');
+  } else {
+    var best = valid[0], worst = valid[0];
+    for (i = 1; i < valid.length; i++){
+      if (valid[i].spend / valid[i].orders < best.spend / best.orders) best = valid[i];
+      if (valid[i].spend / valid[i].orders > worst.spend / worst.orders) worst = valid[i];
+    }
+    var bc = best.spend / best.orders;
+    put('<div class="r"><span>أفضل إعلان: <b style="color:var(--text)">' + best.name + '</b></span><b class="num" style="color:var(--pos)">CPA ' + fmt(bc) + '</b></div>');
+    if (worst !== best) put('<div class="r"><span>أضعف إعلان: <b style="color:var(--text)">' + worst.name + '</b></span><b class="num" style="color:var(--neg)">CPA ' + fmt(worst.spend / worst.orders) + '</b></div>');
+    if (roas !== null){
+      var rTxt, rCol;
+      if (roas >= 2){ rTxt = 'ممتاز — كل 1 إنفاق يعود بـ ' + fmt(roas); rCol = 'var(--pos)'; }
+      else if (roas >= 1){ rTxt = 'مقبول — عائد ' + fmt(roas) + ' لكل 1 إنفاق'; rCol = 'var(--warn)'; }
+      else { rTxt = 'ضعيف — العائد ' + fmt(roas) + ' فقط لكل 1 إنفاق'; rCol = 'var(--neg)'; }
+      put('<div class="r"><span>جودة الحملة (ROAS)</span><b class="num" style="color:' + rCol + '">' + rTxt + '</b></div>');
+    }
+    if (returned > 0) put('<div class="r"><span>تكلفة المرتجعات (' + returned + ' طلب)</span><b class="num" style="color:var(--neg)">-' + money(retLoss, 0) + '</b></div>');
+    var tip;
+    if (bc > breakEven) tip = 'تحذير: أفضل إعلان يكلفك ' + fmt(bc) + ' للطلب وهو أعلى من نقطة التعادل ' + fmt(Math.max(breakEven, 0)) + ' — حسّن العرض أو الاستهداف.';
+    else tip = 'أفضل إعلان يحقق ربحاً ' + fmt(breakEven - bc) + ' فوق نقطة التعادل لكل طلب — زِد ميزانيته تدريجياً مع المراقبة.';
+    put('<div class="tip">' + tip + '</div>');
+  }
+}
+
+/* === product field bindings === */
+function bindField(id, key){
+  var e = $(id);
+  if (!e) return;
+  e.addEventListener('input', function(){
+    P()[key] = e.value;
+    if (id === 'pName'){ renderTabs(); $('resName').textContent = e.value || 'منتج'; }
+    recalc(); save();
+  }, false);
+}
+bindField('pName', 'name');
+bindField('sellPrice', 'sell');
+bindField('prodCost', 'prodCost');
+bindField('shipCost', 'ship');
+bindField('feePct', 'feePct');
+bindField('returned', 'returned');
+bindField('cur', 'cur');
+
+$('delProduct').onclick = function(){
+  if (products.length <= 1){ toast('لا يمكن حذف آخر منتج'); return; }
+  if (!confirm('حذف هذا المنتج وكل بياناته؟')) return;
+  products.splice(active, 1);
+  active = Math.min(active, products.length - 1);
+  save(); renderTabs(); syncInputs(); recalc(); toast('تم الحذف');
+};
+
+$('addAd').onclick = function(){
+  P().ads.push({name:'إعلان جديد', spend:0, orders:0});
+  renderAds(); recalc(); save();
+};
+
+$('resetAll').onclick = function(){
+  if (!confirm('سيتم مسح جميع المنتجات والعودة للبيانات الافتراضية. متابعة؟')) return;
+  products = defaults(); active = 0;
+  save(); renderTabs(); syncInputs(); recalc(); toast('تمت إعادة التعيين');
+};
+
+$('copyReport').onclick = function(){
+  var p = P(), c = lastCalc;
+  if (!c || c.orders === 0){ toast('لا توجد بيانات للتقرير'); return; }
+  var L = [];
+  L.push('تقرير شكاكي: ' + p.name);
+  L.push('الإيرادات: ' + money(c.rev, 0) + ' | الطلبات: ' + c.orders + ' (مكتملة ' + c.fulfilled + '، مرتجعة ' + c.returned + ')');
+  L.push('تكلفة الإعلانات: ' + money(c.spend, 0) + ' | CPA: ' + money(c.cpa) + ' | ROAS: ' + fmt(c.roas));
+  L.push('نقطة التعادل: ' + money(Math.max(c.breakEven, 0)));
+  L.push('الربح لكل طلب مكتمل: ' + money(c.ppo) + ' | إجمالي الربح: ' + money(c.profit) + ' | الهامش: ' + (c.margin === null ? '—' : fmt(c.margin) + '%'));
+  for (var i = 0; i < p.ads.length; i++){
+    var a = p.ads[i];
+    if (a.orders > 0) L.push('- ' + a.name + ': ميزانية ' + money(num(a.spend), 0) + ' | ' + a.orders + ' طلب | CPA ' + fmt(num(a.spend) / a.orders));
+  }
+  L.push('— شكاكي');
+  var txt = L.join('\n');
+  function fallback(t){
+    var ta = document.createElement('textarea');
+    ta.value = t; document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); toast('تم نسخ التقرير'); } catch(e){ toast('تعذّر النسخ'); }
+    document.body.removeChild(ta);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(function(){ toast('تم نسخ التقرير'); }, function(){ fallback(txt); });
+  } else fallback(txt);
+};
+
+/* === INIT (guarded) === */
+try {
+  setupAdsDelegation();
+  renderTabs();
+  syncInputs();
+  recalc();
+} catch(err){
+  toast('حدث خطأ في التحميل: ' + err.message);
+}
+</script>
+</body>
+</html>
